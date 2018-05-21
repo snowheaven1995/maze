@@ -10,7 +10,7 @@
               <span v-if="x.status && x.key">钥匙</span>
               <span v-if="x.status && x.monster && x.monster.isAlive">{{x.monster.name}} 攻：{{x.monster.attack.n}},血：{{x.monster.blood.n}}</span>
               <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span>
-              <span v-if="x.door">门</span>
+              <span v-if="x.door">人</span>
             </td>
           </tr>
       </table>
@@ -38,8 +38,12 @@ import gameStore from './store.vue'
         ceng:1,
         thisKey:false, //本层钥匙
         isThis:[],//防止同一数组添加多个元素
-        n:6,//格子数
+        n:9,//格子数
         table:[],
+        personPosition:{
+          xPosition:1,
+          yPosition:1
+        },
         my:{//人物属性
             id:'',
             attack:{
@@ -138,9 +142,9 @@ import gameStore from './store.vue'
         this.table=[]
         this.thisKey = false
         var j = 1+(1+ceng)/10 //金币基数
-        var k = this.mapInit().split(',')//钥匙
+        var k = this.randomValue().split(',')//钥匙
         var monsterNum = parseInt(Math.random()*(10-5+1)+5)//随机5-10怪
-        var d = this.mapInit().split(',')//门
+        var d = this.randomValue().split(',')//人物
         for(var i=0;i<this.n;i++){
           this.table.push([])
         }
@@ -153,7 +157,7 @@ import gameStore from './store.vue'
         this.table[k[0]][k[1]].key = true
         // 添加怪物
         for(var i=0;i<monsterNum;i++){
-          var monsterKey = this.mapInit().split(',')
+          var monsterKey = this.randomValue().split(',')
           this.$set(this.table[monsterKey[0]][monsterKey[1]],'monster',{
             name:'小怪', 
             attack:{
@@ -181,6 +185,7 @@ import gameStore from './store.vue'
             isFightBack:true,//是否反击
             money:parseInt((Math.random()*(1000-500+1)+500)*j),//金币
             isAlive:true,//是否存活
+
           })
          
         }
@@ -189,8 +194,8 @@ import gameStore from './store.vue'
         this.table[d[0]][d[1]].status = true
 
       },
-      // 随机数防止重复
-      mapInit(){
+      // 随机数防止重复(返回值形势为 ‘1，2’)
+      randomValue(){ 
         var x1 = this.randomNumber(this.n)
         var y1 = this.randomNumber(this.n)
         var x = x1+','+y1
@@ -257,10 +262,17 @@ import gameStore from './store.vue'
         }
       },
       // 走路
-      way(x,table,tableIndex,index,item){
-        if(x.status){
-          this.func1(x)
+      way(x,table,tableIndex,index,item){//横坐标index， 纵坐标tableindex
+      for(let i of table){
+        for(let j of i){
+          this.$set(j,'door',false)
+          // j['door'] = false
         }
+      }
+      this.func1(x)
+        // if(x.status){
+          
+        // }
         var thisIndex = index
         // 路是否通
         var next = false
@@ -333,7 +345,8 @@ import gameStore from './store.vue'
          // 是否有怪看守
         let monster = Mnext && Mprev && Mtop && Mbottom
         if(status&&monster){
-
+          console.log('5556456')
+          x['door'] = true
           x.status = true
         }else{
           this.$message('要打通一条路才能过去，懂吗');
