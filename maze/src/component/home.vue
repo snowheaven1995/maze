@@ -2,7 +2,7 @@
     <div id="body">
     <!-- {{kr}} -->
     <el-button @click="isGet">加入</el-button>
-    <el-button @click="kanren">砍人</el-button>
+    <el-button @click="start">开始</el-button>
     <!-- {{table}} -->
       <table>
           <tr v-for="(item,tableIndex) in table">
@@ -14,7 +14,7 @@
             </td>
           </tr>
       </table>
-      <div><div class="ppp">第{{ceng}}层</div><img src="src/assets/images/aaaa.png" class="ppp"></div>
+      <div><div class="ppp">第{{ceng}}层</div></div>
       <div>本层钥匙：{{thisKey}}</div>
       <div>属性：</div>
       <div v-for="item in my" class="snow_on_left">{{item.name}}:{{item.n}}</div>
@@ -75,10 +75,6 @@ import gameStore from './store.vue'
             helmet:0,//头盔
             shoe:0//鞋子
           },
-        // getData: {
-        //   method: 'get', url: baseUrls.ips + '/aa', 
-        //   params: {}
-        // },
       }
     },
 
@@ -104,22 +100,14 @@ import gameStore from './store.vue'
         }
         this.my.money.n -= val.cost;
       },
-      kanren(){
-        this.ws.send(JSON.stringidefense(this.my));
-        this.ws.onmessage = (evt) => { 
-          // console.log(evt)
-          evt = JSON.parse(evt.data)
-          // console.log(evt)
-          // console.log(typeof evt)
-          for(var i in evt){
-            // decodeURI(evt.data[i].name )
-            console.log(evt[i])
-            for(var x in evt[i]){
-              console.log(evt[i][x].name)
-            }
+      start(){
+        this.ws.send(JSON.stringify(this.table));
+        this.ws.onmessage = (r) => { 
+          if(r.data.length>10){
+            this.table = JSON.parse(r.data)
           }
-          // this.kr = evt.data
 
+          // console.log(r.data)
         }
       },
       ajax(json,callback) {
@@ -132,7 +120,16 @@ import gameStore from './store.vue'
         if(!this.my.id){
           this.my.id = time1
         }
-        this.ws = new WebSocket('ws://192.168.1.245:8090/notidefense')
+        if(!this.ws){
+          this.ws = new WebSocket('ws://192.168.1.245:8090/notify')
+          this.ws.onmessage = (evt) => {  // 收到服务器发送的消息后执行的回调
+              console.log(evt.data)
+        }
+        }
+        
+
+        
+
       },
       rrrGet(r){
         console.log(JSON.stringify(r))
