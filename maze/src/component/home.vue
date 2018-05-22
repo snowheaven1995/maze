@@ -101,13 +101,15 @@ import gameStore from './store.vue'
         this.my.money.n -= val.cost;
       },
       start(){
+        console.log(JSON.stringify(this.table))
         this.ws.send(JSON.stringify(this.table));
         this.ws.onmessage = (r) => { 
           if(r.data.length>10){
             this.table = JSON.parse(r.data)
+
           }
 
-          // console.log(r.data)
+         
         }
       },
       ajax(json,callback) {
@@ -333,7 +335,7 @@ import gameStore from './store.vue'
          // 是否有怪看守
         let monster = Mnext && Mprev && Mtop && Mbottom
         if(status&&monster){
-
+          console.log(1111)
           x.status = true
         }else{
           this.$message('要打通一条路才能过去，懂吗');
