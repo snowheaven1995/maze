@@ -9,7 +9,7 @@
             <td v-for="(x,index) in item" @click="way(x,table,tableIndex,index,item)" :class="{td2:x.status}">
               <span v-if="x.status && x.key">钥匙</span>
               <span v-if="x.status && x.monster && x.monster.isAlive">{{x.monster.name}} 攻：{{x.monster.attack.n}},血：{{x.monster.blood.n}}</span>
-              <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span>
+              <!-- <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span> -->
               <span v-if="x.human">人</span>
             </td>
           </tr>
@@ -33,10 +33,7 @@ import gameStore from './store.vue'
     },
     data(){
       return{
-        human:{
-          x:0,
-          y:0,
-        },
+        
         kr:'',
         ws:'',
         ceng:1,
@@ -44,12 +41,13 @@ import gameStore from './store.vue'
         isThis:[],//防止同一数组添加多个元素
         n:6,//格子数
         table:[],
-        personPosition:{
-          xPosition:1,
-          yPosition:1
-        },
+             
         my:{//人物属性
             id:'',
+            manPosition:{
+              x:0,
+              y:0,
+            },
             attack:{
                   name:'攻击',
                   n:24
@@ -74,20 +72,36 @@ import gameStore from './store.vue'
             money:{
                name:'金币',
                n:1000
-
-             }
+            },
+            arms:{
+              weapon:'',
+              cloth:'',
+              helmet:'',
+              shoe:'',
+            }
         },
-        equipment:{//装备
-            weapon:0,//武器
-            cloth:0,//衣服
-            helmet:0,//头盔
-            shoe:0//鞋子
-          },
+        equipment:[//装备
+          {
+             type:'weapon',
+             name:'铁剑',
+          },//武器
+          {
+            type:'cloth',
+            name:'一级防弹衣',
+          },//衣服
+          {
+            type:'helmet',
+            name:'摩托车头盔',
+          },//头盔
+          {
+            type:'shoe',
+            name:'草鞋',
+          },//鞋子 
+          ],
       }
     },
 
     beforeMount() {
-        
         this.init(this.ceng)
     },
     mounted() {
@@ -97,8 +111,7 @@ import gameStore from './store.vue'
       buySome(val){
         console.log('from father',val)
         if(val.type == 1){
-           this.my.blood.n+=val.value;
-          
+           this.my.blood.n+=val.value;  
         }
         if(val.type == 2){
           this.my.attack.n -= val.value;
@@ -116,8 +129,6 @@ import gameStore from './store.vue'
             this.table = JSON.parse(r.data)
 
           }
-
-         
         }
       },
       ajax(json,callback) {
@@ -164,6 +175,7 @@ import gameStore from './store.vue'
         // 添加怪物
         for(var i=0;i<monsterNum;i++){
           var monsterKey = this.randomValue().split(',')
+          let thing = this.randomNumber(this.equipment.length)
           this.table[monsterKey[0]][monsterKey[1]].isWalk = false
           this.$set(this.table[monsterKey[0]][monsterKey[1]],'monster',{
             name:'小怪', 
@@ -188,6 +200,7 @@ import gameStore from './store.vue'
                 name:'暴击',
                 n:0
               },
+            fallItem:this.equipment[thing],  
             isBlock:true,//是否看守周围石板(是否封锁)
             isFightBack:true,//是否反击
             money:parseInt((Math.random()*(1000-500+1)+500)*j),//金币
@@ -197,8 +210,8 @@ import gameStore from './store.vue'
          
         }
         // 门
-        this.human.x = d[0]//横
-        this.human.y = d[1]//竖
+        this.my.manPosition.x = d[0]//横
+        this.my.manPosition.y = d[1]//竖
 
         this.table[d[0]][d[1]].human = true
         this.table[d[0]][d[1]].status = true
@@ -208,7 +221,7 @@ import gameStore from './store.vue'
       randomValue(){ 
         var x1 = this.randomNumber(this.n)
         var y1 = this.randomNumber(this.n)
-        var x = x1+','+y1
+        let x = x1+','+y1
         if(this.isThis.indexOf(x)>=0){
           while(this.isThis.length<(this.n*this.n)){
             var a = this.randomNumber(this.n)
@@ -244,14 +257,26 @@ import gameStore from './store.vue'
       //打怪
       daguai(x){
         if(this.my.blood.n>0){
-          var start = this.ad(this.my,x)//人物攻击
-            if(x.blood.n==0){
-              this.$message('你打死了'+x.name+'，懂吗');
-              x.isAlive = false //死亡
-              x.isBlock = false //不在看守石板
-              // this.my.money.n += x.money
+          var start = this.ad(this.my,x.monster)//人物攻击
+            if(x.monster.blood.n==0){
+              this.$message();
+              x.monster.isAlive = false //死亡
+              x.monster.isBlock = false //不在看守石板
+              x.isWalk = true;
+              this.$message('你打死了'+x.monster.name+';你获得了'+x.monster.money+'个金币和'+x.monster.fallItem.name)
+              for(let item in this.my.arms){
+                console.log(item)
+                if(this.my.arms[item]==''){
+                  if(item == x.monster.fallItem.type){
+                    this.my.arms[item] = x.monster.fallItem
+                  }
+                }
+                
+              }
+              console.log(this.my.arms)
+              this.my.money.n += x.monster.money
             }else{
-              this.$message('对'+x.name+'造成'+start[0]+'点伤害，'+'你受到'+x.name+'的攻击扣了'+start[1]+'点生命值');
+              this.$message('对'+x.monster.name+'造成'+start[0]+'点伤害，'+'你受到'+x.monster.name+'的攻击扣了'+start[1]+'点生命值');
             }
         }else if(this.my.blood.n==0){
           this.$message('你已经死了，懂吗');
@@ -261,7 +286,7 @@ import gameStore from './store.vue'
       func1(x){
         console.log('in attacking')
         if(x.monster && x.monster.isAlive){
-          this.daguai(x.monster)//打怪
+          this.daguai(x)//打怪
         }else if(x.key){//钥匙
           this.thisKey = true
         }else if(x.human){//下一层
@@ -270,35 +295,43 @@ import gameStore from './store.vue'
             this.init(this.ceng)
           }
         }
+       
       },
       // 走路
-      way(x,table,tableIndex,index,item){//横坐标index， 纵坐标tableindex
-       if(x.isWalk){
+      way(point,table,tableIndex,index,item){//横坐标index， 纵坐标tableindex
+       
          // 上下走
-        if((this.human.x==tableIndex+1 || this.human.x==tableIndex-1) && this.human.y==index){ 
-          for(let i of table){
-            for(let j of i){
-              this.$set(j,'human',false)
+        if((this.my.manPosition.x==tableIndex+1 || this.my.manPosition.x==tableIndex-1) && this.my.manPosition.y==index){ 
+          if(point.isWalk){
+            for(let i of table){
+              for(let j of i){
+                this.$set(j,'human',false)
+              }
             }
+            point['human'] = true
+            point.status = true
+            this.my.manPosition.x = tableIndex
           }
-          x['human'] = true
-          x.status = true
-          this.human.x = tableIndex
-          // 左右走
-        }else if((this.human.y==index+1 || this.human.y==index-1) && this.human.x==tableIndex){
-          for(let i of table){
-            for(let j of i){
-              this.$set(j,'human',false)
+          else{
+            point.status = true
+            this.func1(point)
+            // console.log('事件')
+          }
+        }else if((this.my.manPosition.y==index+1 || this.my.manPosition.y==index-1) && this.my.manPosition.x==tableIndex){
+          if(point.isWalk){
+            for(let i of table){
+              for(let j of i){
+                this.$set(j,'human',false)
+              }
             }
+            point['human'] = true
+            point.status = true
+            this.my.manPosition.y = index
           }
-          x['human'] = true
-          x.status = true
-          this.human.y = index
-        }
-      }else{
-        x.status = true
-        this.func1()
-        // console.log('事件')
+          else{
+            point.status = true
+            this.func1(point)
+          }
       }
         
 

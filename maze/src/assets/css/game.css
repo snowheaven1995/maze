@@ -5,3 +5,14 @@
 	height: 90px;
 	line-height: 90px;
 }
+.itemLabel{
+	float: left;
+	width: 150px;
+	text-align: right;
+	height: 40px;
+	line-height: 40px;
+}
+.storeItem{
+	height: 40px;
+	margin: 10px 0;
+}

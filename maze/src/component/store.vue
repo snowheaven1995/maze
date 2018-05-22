@@ -9,16 +9,20 @@
 	  <el-form ref="form" :model="form" label-width="150px">
 	  	<el-form-item label="现在拥有金币：">
 		 	<label>{{money}}</label>
-		  </el-form-item>
-		  <el-form-item label="血量50：1000金币">
-		  <el-button type="primary"  @click='buySome(form.blood)'>购买</el-button>
-		  </el-form-item>
-		  <el-form-item label="攻击5：1000金币">
+		</el-form-item>
+		<div v-for='item in storeItems' class="storeItem">
+			<label class="itemLabel">{{item.forChn}}{{item.value}}：{{item.cost}}金币</label>
+			<el-button type="primary"  @click='buySome(item)'>购买</el-button>
+		</div>
+		<!-- <el-form-item label="{{item.name}}{{item.value}}：{{item.cost}}金币" v-for='item in storeItems'>
+		  <el-button type="primary"  @click='buySome(item)'>购买</el-button>
+		</el-form-item> -->
+		    <!-- <el-form-item label="攻击5：1000金币">
 		  <el-button type="primary" @click='buySome(form.attack)'>购买</el-button>
 		  </el-form-item>
 		  <el-form-item label="防御5：1000金币">
 		  <el-button type="primary" @click='buySome(form.defense)'>购买</el-button>
-		  </el-form-item>
+		  </el-form-item> -->
 		</el-form>
 	  <span slot="footer" class="dialog-footer">
 	    <el-button @click="storeVisible = false">取 消</el-button>
@@ -51,6 +55,29 @@
 						cost:1000,
 					},
 				},
+				storeItems:[
+					{
+						name:'blood',
+						forChn:'血量',
+						type:1,
+						value:50,
+						cost:1000,
+					},
+					{
+						name:'attack',
+						forChn:'攻击',
+						type:2,
+						value:5,
+						cost:1000,
+					},
+					{
+						name:'defense',
+						forChn:'防御',
+						type:3,
+						value:5,
+						cost:1000,
+					},
+				]
 				// money:0,
 			}
 		},
