@@ -10,7 +10,7 @@
               <span v-if="x.status && x.key">钥匙</span>
               <span v-if="x.status && x.monster && x.monster.isAlive">{{x.monster.name}} 攻：{{x.monster.attack.n}},血：{{x.monster.blood.n}}</span>
               <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span>
-              <span v-if="x.door">人</span>
+              <span v-if="x.human">人</span>
             </td>
           </tr>
       </table>
@@ -190,7 +190,7 @@ import gameStore from './store.vue'
          
         }
         // 门
-        this.table[d[0]][d[1]].door = true
+        this.table[d[0]][d[1]].human = true
         this.table[d[0]][d[1]].status = true
 
       },
@@ -254,7 +254,7 @@ import gameStore from './store.vue'
           this.daguai(x.monster)//打怪
         }else if(x.key){//钥匙
           this.thisKey = true
-        }else if(x.door){//下一层
+        }else if(x.human){//下一层
           if(this.thisKey){
             this.ceng++
             this.init(this.ceng)
@@ -265,8 +265,7 @@ import gameStore from './store.vue'
       way(x,table,tableIndex,index,item){//横坐标index， 纵坐标tableindex
       for(let i of table){
         for(let j of i){
-          this.$set(j,'door',false)
-          // j['door'] = false
+          this.$set(j,'human',false)
         }
       }
       this.func1(x)
@@ -346,7 +345,7 @@ import gameStore from './store.vue'
         let monster = Mnext && Mprev && Mtop && Mbottom
         if(status&&monster){
           console.log('5556456')
-          x['door'] = true
+          x['human'] = true
           x.status = true
         }else{
           this.$message('要打通一条路才能过去，懂吗');
