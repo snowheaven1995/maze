@@ -130,7 +130,7 @@ import gameStore from './store.vue'
           this.ws = new WebSocket('ws://192.168.1.245:8090/notify')
           this.ws.onmessage = (evt) => {  // 收到服务器发送的消息后执行的回调
               console.log(evt.data)
-        }
+          }
         }
         
 
