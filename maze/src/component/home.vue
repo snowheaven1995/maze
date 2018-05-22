@@ -10,7 +10,7 @@
               <span v-if="x.status && x.key">钥匙</span>
               <span v-if="x.status && x.monster && x.monster.isAlive">{{x.monster.name}} 攻：{{x.monster.attack.n}},血：{{x.monster.blood.n}}</span>
               <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span>
-              <span v-if="x.door">人</span>
+              <span v-if="x.human">人</span>
             </td>
           </tr>
       </table>
@@ -33,12 +33,16 @@ import gameStore from './store.vue'
     },
     data(){
       return{
+        human:{
+          x:0,
+          y:0,
+        },
         kr:'',
         ws:'',
         ceng:1,
         thisKey:false, //本层钥匙
         isThis:[],//防止同一数组添加多个元素
-        n:9,//格子数
+        n:6,//格子数
         table:[],
         personPosition:{
           xPosition:1,
@@ -150,9 +154,9 @@ import gameStore from './store.vue'
         for(var i=0;i<this.n;i++){
           this.table.push([])
         }
-        for(var i=0;i<this.table.length;i++){
+        for(var i=0;i<this.table.length;i++){//地图初始化
           for(var x=0;x<this.n;x++){
-            this.table[i].push({status:false,key:false})
+            this.table[i].push({status:false,key:false,isWalk:true})
           }
         } 
         // 添加钥匙
@@ -160,6 +164,7 @@ import gameStore from './store.vue'
         // 添加怪物
         for(var i=0;i<monsterNum;i++){
           var monsterKey = this.randomValue().split(',')
+          this.table[monsterKey[0]][monsterKey[1]].isWalk = false
           this.$set(this.table[monsterKey[0]][monsterKey[1]],'monster',{
             name:'小怪', 
             attack:{
@@ -192,7 +197,10 @@ import gameStore from './store.vue'
          
         }
         // 门
-        this.table[d[0]][d[1]].door = true
+        this.human.x = d[0]//横
+        this.human.y = d[1]//竖
+
+        this.table[d[0]][d[1]].human = true
         this.table[d[0]][d[1]].status = true
 
       },
@@ -238,10 +246,10 @@ import gameStore from './store.vue'
         if(this.my.blood.n>0){
           var start = this.ad(this.my,x)//人物攻击
             if(x.blood.n==0){
-              this.$message('你打死了'+x.name+'获得了'+x.money+'个金币，懂吗');
+              this.$message('你打死了'+x.name+'，懂吗');
               x.isAlive = false //死亡
               x.isBlock = false //不在看守石板
-              this.my.money.n += x.money
+              // this.my.money.n += x.money
             }else{
               this.$message('对'+x.name+'造成'+start[0]+'点伤害，'+'你受到'+x.name+'的攻击扣了'+start[1]+'点生命值');
             }
@@ -256,7 +264,7 @@ import gameStore from './store.vue'
           this.daguai(x.monster)//打怪
         }else if(x.key){//钥匙
           this.thisKey = true
-        }else if(x.door){//下一层
+        }else if(x.human){//下一层
           if(this.thisKey){
             this.ceng++
             this.init(this.ceng)
@@ -265,93 +273,112 @@ import gameStore from './store.vue'
       },
       // 走路
       way(x,table,tableIndex,index,item){//横坐标index， 纵坐标tableindex
-      for(let i of table){
-        for(let j of i){
-          this.$set(j,'door',false)
-          // j['door'] = false
-        }
-      }
-      this.func1(x)
-        // if(x.status){
-          
-        // }
-        var thisIndex = index
-        // 路是否通
-        var next = false
-        var prev = false
-        var top = false
-        var bottom = false
-
-        // 怪物看守石板
-        var Mnext = false
-        var Mprev = false
-        var Mtop = false
-        var Mbottom = false
-        
-        // 右边
-        if(index+1<this.n){
-          next = item[index+1].status
-          if(next){
-            if(!item[index+1].monster || !item[index+1].monster.isBlock){
-              Mnext = true
+       if(x.isWalk){
+         // 上下走
+        if((this.human.x==tableIndex+1 || this.human.x==tableIndex-1) && this.human.y==index){ 
+          for(let i of table){
+            for(let j of i){
+              this.$set(j,'human',false)
             }
-          }else{
-            Mnext = true
           }
-        }else{
-          Mnext = true
-        }
-        // 左边
-        if(index-1>=0){
-          prev = item[index-1].status
-          if(prev){
-            if(!item[index-1].monster || !item[index-1].monster.isBlock){
-              Mprev = true
-            }
-          }else{
-           Mprev = true
-         }
-        }else{
-          Mprev = true
-        }
-        // 上面
-        if(tableIndex+1<this.n){
-           top = table[tableIndex+1][thisIndex].status
-           if(top){
-             if(!table[tableIndex+1][thisIndex].monster || !table[tableIndex+1][thisIndex].monster.isBlock){
-              Mtop = true
-            }
-           }else{
-            Mtop = true
-           }
-        }else{
-          Mtop = true
-        }
-        // 下面
-        if(tableIndex-1>=0){
-         bottom = table[tableIndex-1][thisIndex].status
-             if(bottom){
-              if(!table[tableIndex-1][thisIndex].monster || !table[tableIndex-1][thisIndex].monster.isBlock){
-               Mbottom = true
-             }
-
-           }else{
-            Mbottom = true
-          }
-        }else{
-          Mbottom = true
-        }
-        // 路是否通
-        // console.log(Mnext,Mprev,Mtop,Mbottom)
-        let status = next || prev || top || bottom
-         // 是否有怪看守
-        let monster = Mnext && Mprev && Mtop && Mbottom
-        if(status&&monster){
-          x['door'] = true
+          x['human'] = true
           x.status = true
-        }else{
-          this.$message('要打通一条路才能过去，懂吗');
+          this.human.x = tableIndex
+          // 左右走
+        }else if((this.human.y==index+1 || this.human.y==index-1) && this.human.x==tableIndex){
+          for(let i of table){
+            for(let j of i){
+              this.$set(j,'human',false)
+            }
+          }
+          x['human'] = true
+          x.status = true
+          this.human.y = index
         }
+      }else{
+        x.status = true
+        this.func1()
+        // console.log('事件')
+      }
+        
+
+        // var thisIndex = index
+        // // 路是否通
+        // var next = false
+        // var prev = false
+        // var top = false
+        // var bottom = false
+
+        // // 怪物看守石板
+        // var Mnext = false
+        // var Mprev = false
+        // var Mtop = false
+        // var Mbottom = false
+        
+        // // 右边
+        // if(index+1<this.n){
+        //   next = item[index+1].status
+        //   if(next){
+        //     if(!item[index+1].monster || !item[index+1].monster.isBlock){
+        //       Mnext = true
+        //     }
+        //   }else{
+        //     Mnext = true
+        //   }
+        // }else{
+        //   Mnext = true
+        // }
+        // // 左边
+        // if(index-1>=0){
+        //   prev = item[index-1].status
+        //   if(prev){
+        //     if(!item[index-1].monster || !item[index-1].monster.isBlock){
+        //       Mprev = true
+        //     }
+        //   }else{
+        //    Mprev = true
+        //  }
+        // }else{
+        //   Mprev = true
+        // }
+        // // 上面
+        // if(tableIndex+1<this.n){
+        //    top = table[tableIndex+1][thisIndex].status
+        //    if(top){
+        //      if(!table[tableIndex+1][thisIndex].monster || !table[tableIndex+1][thisIndex].monster.isBlock){
+        //       Mtop = true
+        //     }
+        //    }else{
+        //     Mtop = true
+        //    }
+        // }else{
+        //   Mtop = true
+        // }
+        // 下面
+        // if(tableIndex-1>=0){
+        //  bottom = table[tableIndex-1][thisIndex].status
+        //      if(bottom){
+        //       if(!table[tableIndex-1][thisIndex].monster || !table[tableIndex-1][thisIndex].monster.isBlock){
+        //        Mbottom = true
+        //      }
+
+        //    }else{
+        //     Mbottom = true
+        //   }
+        // }else{
+        //   Mbottom = true
+        // }
+        // // 路是否通
+        // // console.log(Mnext,Mprev,Mtop,Mbottom)
+        // let status = next || prev || top || bottom
+        //  // 是否有怪看守
+        // let monster = Mnext && Mprev && Mtop && Mbottom
+        // if(status&&monster){
+        //   x['human'] = true
+        //   x.status = true
+        // }else{
+        //   this.$message('要打通一条路才能过去，懂吗');
+        // }
       },
       randomNumber(n){
         // 0到n-1随机数
