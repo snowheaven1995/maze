@@ -1,6 +1,7 @@
 var human = {
-    name:'我',
+   
     attr:{
+        name:'我',
         attack:10,
         defense:5,
         maxBlood:20,
