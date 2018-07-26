@@ -59,6 +59,7 @@
           this.human.action -=take;
           this.map[this.human.pos[0]][this.human.pos[1]] = '我'
         }else{
+          this.$message('您的行动力不够勒')
           console.log('your action is empty')
         }
       },
