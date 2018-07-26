@@ -19,9 +19,9 @@ var hu = {
 				}
 			},
 			{
-				name:'攻击书+2',
+				name:'攻击书+' + 2+level,
 				func:function(man){//man被作用者
-					man.attack+=2
+					 man.attack = man.attack + 2+level
 				}
 			},
 			{
