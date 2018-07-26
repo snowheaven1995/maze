@@ -59,24 +59,29 @@
 					{
 						name:'blood',
 						forChn:'血量',
-						type:1,
+						kind:1,
 						value:50,
 						cost:1000,
 					},
 					{
 						name:'attack',
 						forChn:'攻击',
-						type:2,
+						kind:2,
 						value:5,
 						cost:1000,
 					},
 					{
 						name:'defense',
 						forChn:'防御',
-						type:3,
+						kind:3,
 						value:5,
 						cost:1000,
 					},
+					{
+						name:'军用头盔',
+						type:'helmet',
+
+					}
 				]
 				// money:0,
 			}

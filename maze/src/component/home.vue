@@ -67,7 +67,7 @@ import gameStore from './store.vue'
                },
             critRate:{
                 name:'暴击',
-                n:50
+                n:100
               },
             money:{
                name:'金币',
@@ -84,18 +84,22 @@ import gameStore from './store.vue'
           {
              type:'weapon',
              name:'铁剑',
+             able:5,
           },//武器
           {
             type:'cloth',
             name:'一级防弹衣',
+            able:5,
           },//衣服
           {
             type:'helmet',
             name:'摩托车头盔',
+            able:5,
           },//头盔
           {
             type:'shoe',
             name:'草鞋',
+            able:5,
           },//鞋子 
           ],
       }
@@ -110,13 +114,13 @@ import gameStore from './store.vue'
     methods: {
       buySome(val){
         console.log('from father',val)
-        if(val.type == 1){
+        if(val.kind == 1){
            this.my.blood.n+=val.value;  
         }
-        if(val.type == 2){
+        if(val.kind == 2){
           this.my.attack.n -= val.value;
         }
-        if(val.type == 3){
+        if(val.kind == 3){
           this.my.defense.n -= val.cost;
         }
         this.my.money.n -= val.cost;
