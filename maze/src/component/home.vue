@@ -20,44 +20,35 @@
   </div>
 </template>
 <script>
+  import human from '../assets/js/human.js'
   export default{
     data(){
       return{
         mapSize:50,
         map:[],
-        human:{
-          pos:[5,8],
-          viewSize:1,
-          action:10
-        }
+        human:{  }
        
       }
     },
     watch:{
-      human:{
-          handler: function (val, old) {
-            console.log('it change')
-                // this.elWidth();
-          },
-          deep:true
-        },
+      
     },
     methods:{
       canSee(x,y){
-        if(Math.abs(x-this.human.pos[0])<=this.human.viewSize){
-          if(Math.abs(y-this.human.pos[1])<=this.human.viewSize){
+        if(Math.abs(x-this.human.attr.pos[0])<=this.human.attr.view){
+          if(Math.abs(y-this.human.attr.pos[1])<=this.human.attr.view){
             return true
           }
         }
       },
       comeHere(square,x,y){
         console.log(232323,x,y);
-        let take = Math.abs(x-this.human.pos[0])+Math.abs(y-this.human.pos[1]);
-        if(take<=this.human.action){
-          this.map[this.human.pos[0]][this.human.pos[1]] = null
-          this.human.pos = [x,y];
-          this.human.action -=take;
-          this.map[this.human.pos[0]][this.human.pos[1]] = '我'
+        let take = Math.abs(x-this.human.attr.pos[0])+Math.abs(y-this.human.attr.pos[1]);
+        if(take<=this.human.attr.action){
+          this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
+          this.human.attr.pos = [x,y];
+          this.human.attr.action -=take;
+          this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human
         }else{
           this.$message('您的行动力不够勒')
           console.log('your action is empty')
@@ -68,10 +59,11 @@
         for(let i=0;i<mapSize;i++){
           this.map[i] = Array(mapSize).fill(null)
         }
-        this.map[this.human.pos[0]][this.human.pos[1]] = '我'
+        this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human
       }
     },
     beforeMount(){
+      this.human = human
       this.initMap(this.mapSize);
     },
   }

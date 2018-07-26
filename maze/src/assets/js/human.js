@@ -1,7 +1,9 @@
-let human = {
+var human = {
+    name:'我',
     attr:{
         attack:10,
         defense:5,
+        maxBlood:20,
         blood:20,
         action:10,
         pos:[2,2],
@@ -20,3 +22,4 @@ let human = {
     },
     bag:[]
 }
+export default human
