@@ -1,6 +1,5 @@
 <template>
   <div id="home">
-    <input type="" style="display: none"@keyup.13.native='walk' id='hiddenInput'>
     <div>let's  go some chicken dinner</div>
     <div class="gameArea" >
       <div >
@@ -38,6 +37,7 @@
 </template>
 <script>
   import human from '../assets/js/human.js'
+  import walk from '../assets/js/walk.js'
   import hu from '../assets/js/hu'
   export default{
     data(){
@@ -54,10 +54,6 @@
     methods:{
       reverseArray(ele){
         return ele
-      },
-      walk(ev){
-        console.log('aa')
-        // console.log(ev.keyCode)
       },
       showSquare(r){
         var b = ''
@@ -92,6 +88,10 @@
           this.$message('您的行动力不够勒')
           console.log('your action is empty')
         }
+      },
+      gowalk(){
+        let that = this;
+        walk.walkWay(that);
       },
       initMap(mapSize){
         this.map = Array(mapSize).fill(null)
@@ -133,54 +133,8 @@
 
     },
     mounted(){
-      let oH3 = document.getElementsByClassName('isMe')[0]
-      document.onkeydown = function(ev){
-            var ev = ev || window.event;
-            if(this.human.attr.action>0){
-              switch(ev.keyCode){
-              
-              case 87:
-              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],null)
-              // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
-              this.human.attr.pos[0] -=1 ;
-              this.human.attr.action -=1;
-              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],this.human.attr)
-              this.map = this.map.filter(this.reverseArray)
-              break
-              case 83:
-             this.$nextTick(function () {
-              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],null)
-              // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
-                this.human.attr.pos[0] +=1 ;
-                this.human.attr.action -=1;
-                this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],this.human.attr)
-                // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
-                this.map = this.map.filter(this.reverseArray)
-              })
-            
-              break;
-              case 65:
-              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
-              this.human.attr.pos[1] -=1 ;
-              this.human.attr.action -=1;
-              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
-              this.map = this.map.filter(this.reverseArray)
-              break
-              case 68:
-              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
-              this.human.attr.pos[1] +=1 ;
-              this.human.attr.action -=1;
-              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
-              this.map = this.map.filter(this.reverseArray)
-              break;
-             
-          }
-            }else{
-              this.$message('您的行动力花完勒')
-            }
-            
-            
-        }.bind(this)
+      this.gowalk()
+      
     }
   }
 </script>
