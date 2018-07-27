@@ -84,11 +84,19 @@ var hu = {
 				}
 			},
 			{
-				name:'技能书:回血',
-				func:function(man){//man被作用者
-					// man.maxBlood = man.maxBlood + 10*level
+				name:'技能书:回血术',
+				id:'healBooK',//用来检测是否学过
+				isMe:1,
+				content:{
+		            name:'回血术',
+		            consum:0,//消耗值
+		            lv:1,//技能等级
+		            func:function(man,lve,message){
+		                man.blood = parseInt(man.blood) + 10*lve
+		                message('你恢复了'+ 10*lve + '点血')
+		            }
 				}
-			},
+	        },
 			{
 				name:'技能书:推人',
 				func:function(man){//man被作用者
@@ -146,6 +154,9 @@ var hu = {
 				monsterArr.push(monster)
 			}else{
 				var itemLvMin = parseInt(monsterLV/2)
+				if(itemLvMin==0){
+					itemLvMin++
+				}
 				var monster = {
 					name:monsterLV+'怪',
 					attack:20*monsterLV,//攻击
