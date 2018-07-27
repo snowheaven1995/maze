@@ -1,12 +1,23 @@
 <template>
   <div id="home">
+    <input type="" style="display: none"@keyup.13.native='walk' id='hiddenInput'>
     <div>let's  go some chicken dinner</div>
-    <div class="gameArea">
+    <div class="gameArea" >
+      <div >
+        <el-button class="snow_on_left">背包</el-button>  
+        <div class="snow_on_right attrArea">
+          <span>血量／总血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
+          <span>攻击:{{human.attr.attack}}</span><br>
+          <span>防御:{{human.attr.defense}}</span><br>
+          <span>行动力:{{human.attr.action}}</span>
+        </div>
+      </div>
+      <div class="clear"></div>
       <table cellspacing="0">
         <tr v-for='(row,rowIdx) in map' class="row">
           <template v-for='(square,index) in row'>
             <el-tooltip class="item" effect="dark" :content="showSquare(square)" placement="top-start" v-if="square">
-              <td class="square" :class='{viewable:canSee(rowIdx,index)}' @click='comeHere(square,rowIdx,index)'>{{square.name}}</td>
+              <td class="square" :class='{viewable:canSee(rowIdx,index),isMe:square.view}' @click='comeHere(square,rowIdx,index)'>{{square.name}}</td>
             </el-tooltip>
             <td v-else class="square" :class='{viewable:canSee(rowIdx,index)}' @click='comeHere(square,rowIdx,index)'>{{square}}</td>
           </template>
@@ -41,6 +52,13 @@
       
     },
     methods:{
+      reverseArray(ele){
+        return ele
+      },
+      walk(ev){
+        console.log('aa')
+        // console.log(ev.keyCode)
+      },
       showSquare(r){
         var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense
         return a
@@ -71,7 +89,6 @@
         for(let i=0;i<mapSize;i++){
           this.map[i] = Array(mapSize).fill(null)
         }
-        
         this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
         this.map[8][6] = hu.addMonster(1)[0]
       }
@@ -80,6 +97,59 @@
       this.human = human
       this.initMap(this.mapSize);
     },
+    updated(){
+
+    },
+    mounted(){
+      let oH3 = document.getElementsByClassName('isMe')[0]
+      document.onkeydown = function(ev){
+            var ev = ev || window.event;
+            if(this.human.attr.action>0){
+              switch(ev.keyCode){
+              
+              case 87:
+              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],null)
+              // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
+              this.human.attr.pos[0] -=1 ;
+              this.human.attr.action -=1;
+              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],this.human.attr)
+              this.map = this.map.filter(this.reverseArray)
+              break
+              case 83:
+             this.$nextTick(function () {
+              this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],null)
+              // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
+                this.human.attr.pos[0] +=1 ;
+                this.human.attr.action -=1;
+                this.$set(this.map[this.human.attr.pos[0]],this.human.attr.pos[1],this.human.attr)
+                // this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
+                this.map = this.map.filter(this.reverseArray)
+              })
+            
+              break;
+              case 65:
+              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
+              this.human.attr.pos[1] -=1 ;
+              this.human.attr.action -=1;
+              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
+              this.map = this.map.filter(this.reverseArray)
+              break
+              case 68:
+              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
+              this.human.attr.pos[1] +=1 ;
+              this.human.attr.action -=1;
+              this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
+              this.map = this.map.filter(this.reverseArray)
+              break;
+             
+          }
+            }else{
+              this.$message('您的行动力花完勒')
+            }
+            
+            
+        }.bind(this)
+    }
   }
 </script>
 <style>
@@ -103,5 +173,8 @@
   }
   table{
     width: 100%;
+  }
+  .attrArea{
+    width: 200px;
   }
 </style>
