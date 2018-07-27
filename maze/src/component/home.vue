@@ -3,7 +3,8 @@
     <div>let's  go some chicken dinner</div>
     <div class="gameArea" >
       <div >
-        <el-button class="snow_on_left">背包</el-button>  
+        <el-button class="snow_on_left" @click="bagShow=true">背包</el-button>  
+        <el-button class="snow_on_left" @click="skillShow=true">技能</el-button>  
         <div class="snow_on_right attrArea">
           <span>血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
           <span>攻击:{{human.attr.attack}}</span><br>
@@ -24,19 +25,30 @@
         </tr>
       </table>
     </div>
-    
+    <el-dialog
+      :visible.sync="bagShow"
+      width="30%">
+       <el-button type="primary" plain v-for="(item,index) in human.bag" @click="huAction(item,index)" :key="index">{{item.name}}</el-button>
+    </el-dialog>
+    <el-dialog
+      :visible.sync="skillShow"
+      width="30%">
+       <el-button type="primary" plain v-for="(item,index) in human.skill" @click="huAction(item,index)" :key="index">{{item.name}}</el-button>
+    </el-dialog>   
   </div>
 </template>
 <script>
-  import human from '../assets/js/human.js'
+  import humanBeing from '../assets/js/human.js'
   import walk from '../assets/js/walk.js'
   import hu from '../assets/js/hu'
   export default{
     data(){
       return{
+        skillShow:false,
+        bagShow:false,
         mapSize:50,
         map:[],
-        human:{  }
+        human:{}
        
       }
     },
@@ -47,10 +59,9 @@
       reverseArray(ele){
         return ele
       },
+      // 显示提示
       showSquare(r){
         var b = ''
-
-
         if(r.fallItem){
           for(var i=0;i<r.fallItem.length;i++){
             b+=r.fallItem[i].name
@@ -67,18 +78,12 @@
           }
         }
       },
+      // 使用物品
       comeHere(square,x,y){
-
-        console.log(232323,x,y);
-        let take = Math.abs(x-this.human.attr.pos[0])+Math.abs(y-this.human.attr.pos[1]);
-        if(take<=this.human.attr.action){
-          this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = null
-          this.human.attr.pos = [x,y];
-          this.human.attr.action -=take;
-          this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] = this.human.attr
-        }else{
-          this.$message('您的行动力不够勒')
-          console.log('your action is empty')
+        if(this.human.itemFunc){
+          this.human.itemFunc(this.human)
+          this.human.itemFunc = null
+          this.itemDel.del()
         }
       },
       gowalk(){
@@ -104,7 +109,7 @@
         }
       },
       huInitMap(){
-        var monsterNum = 10
+        var monsterNum = 20
         var monsterArr = hu.addMonster(monsterNum)
         for(var i=0;i<monsterNum;i++){
           var pos = this.pos(this.mapSize-1)
@@ -114,11 +119,29 @@
         }
         
       },
+    huAction(item,index){
+      // 添加使用后删除
+      this.itemDel.del = function(){
+        this.human.bag.splice(index,1)
+        this.itemDel.del = null
+      }.bind(this)
+      this.bagShow = false
+      // 是否对自身使用
+      if(item.isMe==1){
+        item.func(this.human,this.$message)
+        this.itemDel.del()
+      }else{
+        // 使用物品
+        this.human.itemFunc = item.func
+      }
+      
     },
+    itemDel(){},//使用后删除函数，不要删
 
 
+    },
     beforeMount(){
-      this.human = human
+      this.human = humanBeing
       this.initMap(this.mapSize);
     },
     updated(){
