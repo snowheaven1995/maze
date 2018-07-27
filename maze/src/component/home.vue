@@ -6,7 +6,7 @@
       <div >
         <el-button class="snow_on_left">背包</el-button>  
         <div class="snow_on_right attrArea">
-          <span>血量／总血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
+          <span>血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
           <span>攻击:{{human.attr.attack}}</span><br>
           <span>防御:{{human.attr.defense}}</span><br>
           <span>行动力:{{human.attr.action}}</span>
@@ -38,7 +38,7 @@
 </template>
 <script>
   import human from '../assets/js/human.js'
-  import hu from '../assets/hu'
+  import hu from '../assets/js/hu'
   export default{
     data(){
       return{
@@ -60,7 +60,16 @@
         // console.log(ev.keyCode)
       },
       showSquare(r){
-        var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense
+        var b = ''
+
+
+        if(r.fallItem){
+          for(var i=0;i<r.fallItem.length;i++){
+            b+=r.fallItem[i].name
+          }
+        }
+        
+        var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense + b
         return a
       },
       canSee(x,y){
