@@ -6,7 +6,7 @@ var human = {
         defense:5,
         maxBlood:20,
         blood:20,
-        action:10,
+        action:1000,
         pos:[2,2],
         view:2,
     },

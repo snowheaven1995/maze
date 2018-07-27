@@ -23,14 +23,6 @@
           
         </tr>
       </table>
-        <!-- <template v-for='row in map'>
-            <div class="row">
-                <div class="square" v-for='square in row'>
-            </div>
-            
-              
-            </div>
-          </template> -->
     </div>
     
   </div>
@@ -108,14 +100,14 @@
         if(!this.map[x][y]){
           return [x,y]
         }else{
-          this.xy(num)
+          return this.pos(num)
         }
       },
       huInitMap(){
         var monsterNum = 10
         var monsterArr = hu.addMonster(monsterNum)
         for(var i=0;i<monsterNum;i++){
-          var pos = this.pos(49)
+          var pos = this.pos(this.mapSize-1)
           var x = pos[0]
           var y = pos[1]
           this.map[x][y] = monsterArr[i]
