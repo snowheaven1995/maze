@@ -73,9 +73,32 @@
         }
         
         this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
-        this.map[8][6] = hu.addMonster(1)[0]
-      }
+        this.huInitMap()
+      },
+      // 生成坐标
+      pos(num){
+        var x = hu.random(num)
+        var y = hu.random(num)
+        if(!this.map[x][y]){
+          return [x,y]
+        }else{
+          this.xy(num)
+        }
+      },
+      huInitMap(){
+        var monsterNum = 10
+        var monsterArr = hu.addMonster(monsterNum)
+        for(var i=0;i<monsterNum;i++){
+          var pos = this.pos(49)
+          var x = pos[0]
+          var y = pos[1]
+          this.map[x][y] = monsterArr[i]
+        }
+        
+      },
     },
+
+
     beforeMount(){
       this.human = human
       this.initMap(this.mapSize);
