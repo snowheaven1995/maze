@@ -105,7 +105,7 @@ import gameStore from './store.vue'
         this.my.money.n -= val.cost;
       },
       kanren(){
-        this.ws.send(JSON.stringidefense(this.my));
+        this.ws.send(JSON.stringify(this.my));
         this.ws.onmessage = (evt) => { 
           // console.log(evt)
           evt = JSON.parse(evt.data)
