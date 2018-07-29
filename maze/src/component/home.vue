@@ -1,393 +1,234 @@
 <template>
-    <div id="body">
-    <!-- {{kr}} -->
-    <el-button @click="isGet">加入</el-button>
-    <el-button @click="kanren">砍人</el-button>
-    <!-- {{table}} -->
-      <table>
-          <tr v-for="(item,tableIndex) in table">
-            <td v-for="(x,index) in item" @click="way(x,table,tableIndex,index,item)" :class="{td2:x.status}">
-              <span v-if="x.status && x.key">钥匙</span>
-              <span v-if="x.status && x.monster && x.monster.isAlive">{{x.monster.name}} 攻：{{x.monster.attack.n}},血：{{x.monster.blood.n}}</span>
-              <span v-else-if="x.status && x.monster && !x.monster.isAlive">金币 + {{x.monster.money}}</span>
-              <span v-if="x.door">门</span>
-            </td>
-          </tr>
-      </table>
-      <div><div class="ppp">第{{ceng}}层</div><img src="src/assets/images/aaaa.png" class="ppp"></div>
-      <div>本层钥匙：{{thisKey}}</div>
-      <div>属性：</div>
-      <div v-for="item in my" class="snow_on_left">{{item.name}}:{{item.n}}</div>
+  <div id="home">
+    <div>let's  go some chicken dinner</div>
+    <div class="gameArea" >
+      <div >
+        <el-button class="snow_on_left" @click="bagVisible=true">背包</el-button>  
+        <el-button class="snow_on_left" @click="skillShow=true">技能</el-button>  
+        <div class="snow_on_right attrArea">
+          <span>血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
+          <span>攻击:{{human.attr.attack}}</span><br>
+          <span>防御:{{human.attr.defense}}</span><br>
+          <span>行动力:{{human.attr.action}}</span>
+        </div>
+      </div>
       <div class="clear"></div>
-      <gameStore :money='my.money.n' @buySome='buySome'></gameStore>
-     
+      <table cellspacing="0">
+        <tr v-for='(row,rowIdx) in map' class="row">
+          <template v-for='(square,index) in row'>
+            <el-tooltip class="item" effect="dark" :content="showSquare(square)" placement="top-start" v-if="square">
+              <td class="square" :class='{viewable:canSee(rowIdx,index),isMe:square.view}' @click='comeHere(square,rowIdx,index)'>{{square.name}}</td>
+            </el-tooltip>
+            <td v-else class="square" :class='{viewable:canSee(rowIdx,index)}' @click='comeHere(square,rowIdx,index)'>{{square}}</td>
+          </template>
+          
+        </tr>
+      </table>
     </div>
+    <el-dialog
+      :visible.sync="bagVisible"
+      width="30%">
+       <el-button type="primary" plain v-for="(item,index) in human.bag" @click="itemUse(item,index)" :key="index">{{item.name}}</el-button>
+    </el-dialog>
+    <el-dialog
+      :visible.sync="skillShow"
+      width="30%">
+       <el-button type="primary" plain v-for="(item,index) in human.skill" @click="huAction(item,index)" :key="index">{{item.name}}</el-button>
+    </el-dialog>   
+  </div>
 </template>
-<script type="text/javascript">
-// import baseUrls from '../../../assets/js/url.config'
-import gameStore from './store.vue'
+<script>
+  import humanBeing from '../assets/js/human.js'
+  import walk from '../assets/js/walk.js'
+  import hu from '../assets/js/hu'
   export default{
-    name:'maze',
-    components:{
-      gameStore,
-    },
     data(){
       return{
-        kr:'',
-        ws:'',
-        ceng:1,
-        thisKey:false, //本层钥匙
-        isThis:[],//防止同一数组添加多个元素
-        n:6,//格子数
-        table:[],
-        my:{//人物属性
-            id:'',
-            attack:{
-                  name:'攻击',
-                  n:24
-                },
-            blood:{
-                  name:'血量',
-                  n:460
-                },
-
-            defense:{
-                  name:'防御',
-                  n:5
-                },
-            crit:{
-                 name:'暴伤',
-                 n:2
-               },
-            critRate:{
-                name:'暴击',
-                n:50
-              },
-            money:{
-               name:'金币',
-               n:1000
-
-             }
-        },
-        equipment:{//装备
-            weapon:0,//武器
-            cloth:0,//衣服
-            helmet:0,//头盔
-            shoe:0//鞋子
-          },
-        // getData: {
-        //   method: 'get', url: baseUrls.ips + '/aa', 
-        //   params: {}
-        // },
+        skillShow:false,
+        bagVisible:false,
+        mapSize:50,
+        map:[],
+        human:{},
+        attackHigh:12,
+        attackLow:8
       }
     },
-
-    beforeMount() {
-        
-        this.init(this.ceng)
-    },
-    mounted() {
-      window.addEventListener('scroll', this.handleScroll)
-    },
-    methods: {
-      buySome(val){
-        console.log('from father',val)
-        if(val.type == 1){
-           this.my.blood.n+=val.value;
-          
-        }
-        if(val.type == 2){
-          this.my.attack.n -= val.value;
-        }
-        if(val.type == 3){
-          this.my.defense.n -= val.cost;
-        }
-        this.my.money.n -= val.cost;
-      },
-      kanren(){
-        this.ws.send(JSON.stringify(this.my));
-        this.ws.onmessage = (evt) => { 
-          // console.log(evt)
-          evt = JSON.parse(evt.data)
-          // console.log(evt)
-          // console.log(typeof evt)
-          for(var i in evt){
-            // decodeURI(evt.data[i].name )
-            console.log(evt[i])
-            for(var x in evt[i]){
-              console.log(evt[i][x].name)
-            }
-          }
-          // this.kr = evt.data
-
-        }
-      },
-      ajax(json,callback) {
-        this.$ajax(json).then(function(res){
-          if(callback){ callback(res) }; 
-        }.bind(this)).catch(function(e){console.log('E:>',e)});
-      },
-      isGet(){
-        var time1 = Date.parse(new Date())
-        if(!this.my.id){
-          this.my.id = time1
-        }
-        this.ws = new WebSocket('ws://192.168.1.245:8090/notidefense')
-      },
-      rrrGet(r){
-        console.log(JSON.stringify(r))
-      },
-      init(ceng){
-        this.table=[]
-        this.thisKey = false
-        var j = 1+(1+ceng)/10 //金币基数
-        var k = this.mapInit().split(',')//钥匙
-        var monsterNum = parseInt(Math.random()*(10-5+1)+5)//随机5-10怪
-        var d = this.mapInit().split(',')//门
-        for(var i=0;i<this.n;i++){
-          this.table.push([])
-        }
-        for(var i=0;i<this.table.length;i++){
-          for(var x=0;x<this.n;x++){
-            this.table[i].push({status:false,key:false})
-          }
-        } 
-        // 添加钥匙
-        this.table[k[0]][k[1]].key = true
-        // 添加怪物
-        for(var i=0;i<monsterNum;i++){
-          var monsterKey = this.mapInit().split(',')
-          this.$set(this.table[monsterKey[0]][monsterKey[1]],'monster',{
-            name:'小怪', 
-            attack:{
-                  name:'攻击',
-                  n:ceng*10
-                },
-            blood:{
-                  name:'血量',
-                  n:ceng*50,
-                },
-
-            defense:{
-                  name:'防御',
-                   n:ceng*2
-                },
-            crit:{
-                 name:'暴伤',
-                 n:0
-               },
-            critRate:{
-                name:'暴击',
-                n:0
-              },
-            isBlock:true,//是否看守周围石板(是否封锁)
-            isFightBack:true,//是否反击
-            money:parseInt((Math.random()*(1000-500+1)+500)*j),//金币
-            isAlive:true,//是否存活
-          })
-         
-        }
-        // 门
-        this.table[d[0]][d[1]].door = true
-        this.table[d[0]][d[1]].status = true
-
-      },
-      // 随机数防止重复
-      mapInit(){
-        var x1 = this.randomNumber(this.n)
-        var y1 = this.randomNumber(this.n)
-        var x = x1+','+y1
-        if(this.isThis.indexOf(x)>=0){
-          while(this.isThis.length<(this.n*this.n)){
-            var a = this.randomNumber(this.n)
-            var b = this.randomNumber(this.n)
-            var c = a+','+b
-            if(this.isThis.indexOf(c)<0){
-              this.isThis.push(c)
-              return c
-            }
-          }
-        }else{
-          this.isThis.push(x)
-          return x
-        }
-      },
-      // 防御溢出
-      ad(a,b){  //a:攻击方，b:被攻击方
-        var sh = a.attack.n-b.defense.n>0?a.attack.n-b.defense.n:0
-        var sh2 = b.attack.n-a.defense.n>0?b.attack.n-a.defense.n:0
-        var baoji = this.randomNumber(100)
-        var baoji2 = this.randomNumber(100)
-        if(a.critRate.n>=baoji){
-          sh = sh*a.crit.n
-        }
-        if(b.critRate.n>=baoji2){
-          sh2 = sh2*b.crit.n
-        }
-        b.blood.n = b.blood.n - sh>0?b.blood.n - sh:0
-        a.blood.n = a.blood.n - sh2>0?a.blood.n - sh2:0
-        return [sh,sh2]
-
-      },
-      //打怪
-      daguai(x){
-        if(this.my.blood.n>0){
-          var start = this.ad(this.my,x)//人物攻击
-            if(x.blood.n==0){
-              this.$message('你打死了'+x.name+'获得了'+x.money+'个金币，懂吗');
-              x.isAlive = false //死亡
-              x.isBlock = false //不在看守石板
-              this.my.money.n += x.money
-            }else{
-              this.$message('对'+x.name+'造成'+start[0]+'点伤害，'+'你受到'+x.name+'的攻击扣了'+start[1]+'点生命值');
-            }
-        }else if(this.my.blood.n==0){
-          this.$message('你已经死了，懂吗');
-        }
-      },
-      // 执行事件：打怪、拾取等
-      func1(x){
-        console.log('in attacking')
-        if(x.monster && x.monster.isAlive){
-          this.daguai(x.monster)//打怪
-        }else if(x.key){//钥匙
-          this.thisKey = true
-        }else if(x.door){//下一层
-          if(this.thisKey){
-            this.ceng++
-            this.init(this.ceng)
-          }
-        }
-      },
-      // 走路
-      way(x,table,tableIndex,index,item){
-        if(x.status){
-          this.func1(x)
-        }
-        var thisIndex = index
-        // 路是否通
-        var next = false
-        var prev = false
-        var top = false
-        var bottom = false
-
-        // 怪物看守石板
-        var Mnext = false
-        var Mprev = false
-        var Mtop = false
-        var Mbottom = false
-        
-        // 右边
-        if(index+1<this.n){
-          next = item[index+1].status
-          if(next){
-            if(!item[index+1].monster || !item[index+1].monster.isBlock){
-              Mnext = true
-            }
-          }else{
-            Mnext = true
-          }
-        }else{
-          Mnext = true
-        }
-        // 左边
-        if(index-1>=0){
-          prev = item[index-1].status
-          if(prev){
-            if(!item[index-1].monster || !item[index-1].monster.isBlock){
-              Mprev = true
-            }
-          }else{
-           Mprev = true
-         }
-        }else{
-          Mprev = true
-        }
-        // 上面
-        if(tableIndex+1<this.n){
-           top = table[tableIndex+1][thisIndex].status
-           if(top){
-             if(!table[tableIndex+1][thisIndex].monster || !table[tableIndex+1][thisIndex].monster.isBlock){
-              Mtop = true
-            }
-           }else{
-            Mtop = true
-           }
-        }else{
-          Mtop = true
-        }
-        // 下面
-        if(tableIndex-1>=0){
-         bottom = table[tableIndex-1][thisIndex].status
-             if(bottom){
-              if(!table[tableIndex-1][thisIndex].monster || !table[tableIndex-1][thisIndex].monster.isBlock){
-               Mbottom = true
-             }
-
-           }else{
-            Mbottom = true
-          }
-        }else{
-          Mbottom = true
-        }
-        // 路是否通
-        // console.log(Mnext,Mprev,Mtop,Mbottom)
-        let status = next || prev || top || bottom
-         // 是否有怪看守
-        let monster = Mnext && Mprev && Mtop && Mbottom
-        if(status&&monster){
-
-          x.status = true
-        }else{
-          this.$message('要打通一条路才能过去，懂吗');
-        }
-      },
-      randomNumber(n){
-        // 0到n-1随机数
-        return Math.floor(Math.random()*n)
-
-      }
-
+    watch:{
       
+    },
+    methods:{
+      reverseArray(ele){
+        return ele
+      },
+      // 显示提示
+      showSquare(r){
+        var b = ''
+        if(r.fallItem){
+          for(var i=0;i<r.fallItem.length;i++){
+            b+=r.fallItem[i].name
+          }
+        }
+        
+        var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense + b
+        return a
+      },
+      canSee(x,y){
+        if(Math.abs(x-this.human.attr.pos[0])<=this.human.attr.view){
+          if(Math.abs(y-this.human.attr.pos[1])<=this.human.attr.view){
+            return true
+          }
+        }
+      },
+      itemUse(item,idx){
+         console.log(item)
+        if(item.type == 1){
+          item.func(this.human.attr)
+        } else if(item.type==2){
+          this.human.catch = item;
+          console.log(this.human.catch)
+          this.human.catch['idx'] = idx
+        }
+        this.bagVisible = false
+      },
+      // 点击怪物攻击
+      comeHere(eneny,x,y){
+        console.log(this.human.catch)
+        if(eneny){
+          if(this.human.catch.name){
+          console.log('into throw')
+          if((Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x){
+            this.human.catch.func(eneny);
+            this.human.bag.splice(this.human.catch.idx,1);
+            this.human.catch = {}
+          }
+        }else{
+          console.log('into hand',eneny)
+          let isNear =false;
+          if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
+            isNear = true
+          }
+          if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
+            isNear = true
+          }
+          if(isNear&&eneny){
+            console.log('now you atttack',eneny)
+            let enenyLose = this.human.attr.attack-eneny.defense>0?Math.floor((this.human.attr.attack-eneny.defense)*(hu.random1(8,12)*0.1)):1;
+            let manLose = eneny.attack - this.human.attr.defense>0?Math.floor((eneny.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
+            eneny.blood-=enenyLose;
+            this.human.attr.blood -=manLose;
+            this.$message('你攻击了'+eneny.name+enenyLose+'点血,你损失了'+manLose+'点血')
+            
+          }
+        }
+        if(eneny.blood<=0){
+          let gain =[]
+          for(let i of eneny.fallItem){
+            this.human.bag.push(i)
+            gain.push(i.name)
+          }
+          this.$message('你杀死了'+eneny.name+',并且获得了'+gain.join(','))
+          this.map[x][y] = null;
+        }
+          console.log('after you atttack',eneny.blood)
+        }
+        
+        // if(this.human.itemFunc){
+        //   this.human.itemFunc(this.human)
+        //   this.human.itemFunc = null
+        //   this.itemDel.del()
+        // }
+      },
+      gowalk(){
+        let that = this;
+        walk.walkWay(that);
+      },
+      initMap(mapSize){
+        this.map = Array(mapSize).fill(null)
+        for(let i=0;i<mapSize;i++){
+          this.map[i] = Array(mapSize).fill(null)
+        }
+        this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
+        this.huInitMap()
+      },
+      // 生成坐标
+      pos(num){
+        var x = hu.random(num)
+        var y = hu.random(num)
+        if(!this.map[x][y]){
+          return [x,y]
+        }else{
+          return this.pos(num)
+        }
+      },
+      huInitMap(){
+        var monsterNum = 20
+        var monsterArr = hu.addMonster(monsterNum)
+        for(var i=0;i<monsterNum;i++){
+          var pos = this.pos(this.mapSize-1)
+          var x = pos[0]
+          var y = pos[1]
+          this.map[x][y] = monsterArr[i]
+        }
+        
+      },
+    huAction(item,index){
+      // 添加使用后删除
+      this.itemDel.del = function(){
+        this.human.bag.splice(index,1)
+        this.itemDel.del = null
+      }.bind(this)
+      this.bagVisible = false
+      // 是否对自身使用
+      if(item.isMe==1){
+        item.func(this.human,this.$message)
+        this.itemDel.del()
+      }else{
+        // 使用物品
+        this.human.itemFunc = item.func
+      }
+      
+    },
+    itemDel(){},//使用后删除函数，不要删
 
 
+    },
+    beforeMount(){
+      this.human = humanBeing
+      this.initMap(this.mapSize);
+    },
+    updated(){
 
-
-
+    },
+    mounted(){
+      this.gowalk()
+      
     }
   }
 </script>
-<style type="text/css">
-@import '../assets/css/game.css';
-  #body{
-    margin-top: 150px;
-    height: 600px;
-    width: 600px;
-    /*border: 1px solid #ccc;*/
-    margin: 150px auto 0 auto;
+<style>
+  .viewable{
+    background-color: #fff!important; 
   }
-  td{
-    width: 80px;
-    height: 80px;
-    border: 1px solid #f00;
-    background: #ccc;
-    text-align: center;
+  .square{
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+    float: left;
+    background-color: #ddd
   }
-  .td2{
-    background: #fff;
+  .row{
+    width: 100%;
+    overflow: hidden;
   }
-  .ppp{
-    display: inline-block;
+  .gameArea{
+
+    width: 95%;
+    margin: 0 auto;
   }
-  </style>
-
-
-
-
-
-
-
-
-
-
+  table{
+    width: 100%;
+  }
+  .attrArea{
+    width: 200px;
+  }
 </style>
