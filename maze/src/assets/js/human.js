@@ -54,7 +54,7 @@ var humanBeing = {
             {
                 name:'飞镖(10)',
                 func:function(man,message){
-                    // man.blood = man.blood - 10
+                    man.blood = man.blood - 10
                     message('你使用了飞镖')
 
                 }
