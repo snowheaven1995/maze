@@ -2,10 +2,11 @@
   <div id="home">
     <div>let's  go some chicken dinner</div>
     <div class="gameArea" >
-      <div >
-        <el-button class="snow_on_left" @click="bagShow=true">背包</el-button>  
-        <el-button class="snow_on_left" @click="skillShow=true">技能</el-button>  
-        <div class="snow_on_right attrArea">
+      <div class="cc">
+        <div><el-button @click="bagVisible=true">背包</el-button></div>
+        <div><el-button @click="skillShow=true">技能</el-button></div>  
+        <div v-if="human.itemFunc" class="c">请选择目标  <el-button @click="human.itemFunc=null">取消</el-button></div>
+        <div class="attrArea">
           <span>血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
           <span>攻击:{{human.attr.attack}}</span><br>
           <span>防御:{{human.attr.defense}}</span><br>
@@ -26,14 +27,14 @@
       </table>
     </div>
     <el-dialog
-      :visible.sync="bagShow"
+      :visible.sync="bagVisible"
       width="30%">
-       <el-button type="primary" plain v-for="(item,index) in human.bag" @click="huAction(item,index)" :key="index">{{item.name}}</el-button>
+       <el-button type="primary" plain v-for="(item,index) in human.bag" @click="huAction(item,index,'item')" :key="index">{{item.name}}</el-button>
     </el-dialog>
     <el-dialog
       :visible.sync="skillShow"
       width="30%">
-       <el-button type="primary" plain v-for="(item,index) in human.skill" @click="huAction(item,index)" :key="index">{{item.name}}</el-button>
+       <el-button type="primary" plain v-for="(item,index) in human.skill" @click="huAction(item,index,'skill')" :key="index">{{item.name}} {{item.lv}}级</el-button>
     </el-dialog>   
   </div>
 </template>
@@ -45,11 +46,12 @@
     data(){
       return{
         skillShow:false,
-        bagShow:false,
+        bagVisible:false,
         mapSize:50,
         map:[],
-        human:{}
-       
+        human:{},
+        attackHigh:12,
+        attackLow:8
       }
     },
     watch:{
@@ -67,7 +69,6 @@
             b+=r.fallItem[i].name
           }
         }
-        
         var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense + b
         return a
       },
@@ -78,13 +79,65 @@
           }
         }
       },
-      // 使用物品
-      comeHere(square,x,y){
-        if(this.human.itemFunc){
-          this.human.itemFunc(this.human)
-          this.human.itemFunc = null
-          this.itemDel.del()
+      itemUse(item,idx){
+        // if(item.type == 1){
+        //   item.func(this.human.attr)
+        // } else if(item.type==2){
+        //   this.human.catch = item;
+        //   console.log(this.human.catch)
+        //   this.human.catch['idx'] = idx
+        // }
+        // this.bagVisible = false
+
+      },
+      // 点击怪物攻击
+      comeHere(eneny,x,y){
+        if(eneny){
+          if(this.human.itemFunc){
+          // console.log('into throw')
+          // (Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x
+          if(1){
+            if(this.human.itemFunc(eneny,this.$message,this.map)){//if里面直接会执行一遍函数
+              this.itemDel.del()
+            }
+            this.human.itemFunc = null
+          }
+        }else{
+          console.log('into hand',eneny)
+          let isNear =false;
+          if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
+            isNear = true
+          }
+          if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
+            isNear = true
+          }
+          if(isNear&&eneny){
+            console.log('now you atttack',eneny)
+            let enenyLose = this.human.attr.attack-eneny.defense>0?Math.floor((this.human.attr.attack-eneny.defense)*(hu.random1(8,12)*0.1)):1;
+            let manLose = eneny.attack - this.human.attr.defense>0?Math.floor((eneny.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
+            eneny.blood-=enenyLose;
+            this.human.attr.blood -=manLose;
+            this.$message('你攻击了'+eneny.name+enenyLose+'点血,你损失了'+manLose+'点血')
+            
+          }
         }
+        if(eneny.blood<=0){
+          let gain =[]
+          for(let i of eneny.fallItem){
+            this.human.bag.push(i)
+            gain.push(i.name)
+          }
+          this.$message('你杀死了'+eneny.name+',并且获得了'+gain.join(','))
+          this.map[x][y] = null;
+        }
+          // console.log('after you atttack',eneny.blood)
+        }
+        
+        // if(this.human.itemFunc){
+        //   this.human.itemFunc(this.human)
+        //   this.human.itemFunc = null
+        //   this.itemDel.del()
+        // }
       },
       gowalk(){
         let that = this;
@@ -115,25 +168,40 @@
           var pos = this.pos(this.mapSize-1)
           var x = pos[0]
           var y = pos[1]
+          monsterArr[i]['pos'] = pos
           this.map[x][y] = monsterArr[i]
         }
+        this.human.bag.push(hu.fallItem()[0])
+        this.human.bag.push(hu.fallItem()[1])
+        // this.human.bag.push(hu.fallItem()[1])
+        // this.human.bag.push(hu.fallItem()[0])
+        // this.human.bag.push(hu.fallItem()[2])
+        this.human.bag.push(hu.fallItem()[3])
+        this.human.bag.push(hu.fallItem()[2])
+        // this.human.bag.push(hu.fallItem()[3])
+        // this.human.bag.push(hu.fallItem()[3])
         
       },
-    huAction(item,index){
+    huAction(item,index,type){
       // 添加使用后删除
-      this.itemDel.del = function(){
-        this.human.bag.splice(index,1)
-        this.itemDel.del = null
-      }.bind(this)
-      this.bagShow = false
+      if(type=='item'){
+        this.itemDel.del = function(){
+          this.human.bag.splice(index,1)
+          this.itemDel.del = null
+        }.bind(this)
+      }
       // 是否对自身使用
       if(item.isMe==1){
         item.func(this.human,this.$message)
-        this.itemDel.del()
+        if(type=='item'){
+          this.itemDel.del()
+        }
       }else{
         // 使用物品
         this.human.itemFunc = item.func
       }
+      this.bagVisible = false
+      this.skillShow = false
       
     },
     itemDel(){},//使用后删除函数，不要删
@@ -154,6 +222,15 @@
   }
 </script>
 <style>
+  .c{
+    position: fixed;
+    left: 40%;
+  }
+  .cc{
+    position: fixed;
+    right: 20px;
+    top: 40px;
+  }
   .viewable{
     background-color: #fff!important; 
   }
@@ -169,8 +246,14 @@
     overflow: hidden;
   }
   .gameArea{
+
     width: 95%;
     margin: 0 auto;
+  }
+  .el-dialog__body>button{
+    display: inline-block;
+    width: 150px;
+    margin: 5px;
   }
   table{
     width: 100%;
