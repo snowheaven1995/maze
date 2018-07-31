@@ -51,10 +51,10 @@ var humanBeing = {
                 
                 name:'血瓶(+10)',
                 func:function(man,message){
-                     message = message||''
+                    //  message = message||''
                     man.blood = man.blood +=10;
                     // man.attr.blood = man.attr.blood+10
-                    // message('你恢复了10点血')
+                    message('你恢复了10点血')
                 },
                 isMe:1
             },

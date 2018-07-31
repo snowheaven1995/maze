@@ -41,6 +41,7 @@
   import humanBeing from '../assets/js/human.js'
   import walk from '../assets/js/walk.js'
   import hu from '../assets/js/hu'
+  import range from '../assets/js/range.js'
   export default{
     data(){
       return{
@@ -72,6 +73,41 @@
         var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense + b
         return a
       },
+      handRange(rangeVal,x,y){
+        // if((Math.abs(x-this.human.attr.pos[0])<=rangeVal&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=rangeVal&&this.human.attr.pos[0]==x){
+        //   return true
+        // }
+        if((Math.abs(x-this.human.attr.pos[0])<=rangeVal&&this.human.attr.pos[1]==y)){
+          for(let i=1;i<rangeVal;i++){
+            if(x>this.human.attr.pos[0]){
+              if(this.map[this.human.attr.pos[0]+i][this.human.attr.pos[1]]){
+                return this.map[this.human.attr.pos[0]+i][this.human.attr.pos[1]]
+              }
+            }else{
+              if(this.map[this.human.attr.pos[0]-i][this.human.attr.pos[1]]){
+                return this.map[this.human.attr.pos[0]+i][this.human.attr.pos[1]]
+              }
+            }
+          }
+        }else if(Math.abs(y-this.human.attr.pos[1])<=rangeVal&&this.human.attr.pos[0]==x){
+          for(let i=1;i<rangeVal;i++){
+            if(x>this.human.attr.pos[1]){
+              if(this.map[this.human.attr.pos[1]+i][this.human.attr.pos[0]]){
+                return this.map[this.human.attr.pos[0]+i][this.human.attr.pos[1]]
+              }
+            }else{
+              if(this.map[this.human.attr.pos[1]-i][this.human.attr.pos[0]]){
+                return this.map[this.human.attr.pos[0]+i][this.human.attr.pos[1]]
+              }
+            }
+          }
+        }
+      },
+      range(rangeVal,x,y){
+        if((Math.abs(x-this.human.attr.pos[0])<rangeVal)&&Math.abs(x-this.human.attr.pos[1])<rangeVal){
+          return true
+        }
+      },
       canSee(x,y){
         if(Math.abs(x-this.human.attr.pos[0])<=this.human.attr.view){
           if(Math.abs(y-this.human.attr.pos[1])<=this.human.attr.view){
@@ -82,7 +118,7 @@
       itemUse(item,idx){
          console.log(item)
         if(item.type == 1){
-          item.func(this.human.attr)
+          item.func(this.human.attr,this.$message)
         } else if(item.type==2){
           this.human.catch = item;
           console.log(this.human.catch)
@@ -96,40 +132,45 @@
         if(eneny){
           if(this.human.catch.name){
           console.log('into throw')
-          if((Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x){
+          if(this.handRange(2,x,y)){
             this.human.catch.func(eneny);
             this.human.bag.splice(this.human.catch.idx,1);
             this.human.catch = {}
           }
+          // if((Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x){
+            
+          // }
         }else{
           console.log('into hand',eneny)
-          let isNear =false;
-          if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
-            isNear = true
-          }
-          if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
-            isNear = true
-          }
-          if(isNear&&eneny){
-            console.log('now you atttack',eneny)
-            let enenyLose = this.human.attr.attack-eneny.defense>0?Math.floor((this.human.attr.attack-eneny.defense)*(hu.random1(8,12)*0.1)):1;
-            let manLose = eneny.attack - this.human.attr.defense>0?Math.floor((eneny.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
-            eneny.blood-=enenyLose;
+          // let isNear =false;
+          // if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
+          //   isNear = true
+          // }
+          // if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
+          //   isNear = true
+          // }
+          console.log('now you atttack',range.handRange(this.map,this.human.attr,4,x,y));
+            let attackObj = range.handRange(this.map,this.human.attr,4,x,y);
+            let enenyLose = this.human.attr.attack-attackObj.defense>0?Math.floor((this.human.attr.attack-attackObj.defense)*(hu.random1(8,12)*0.1)):1;
+            let manLose = attackObj.attack - this.human.attr.defense>0?Math.floor((attackObj.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
+            attackObj.blood-=enenyLose;
             this.human.attr.blood -=manLose;
-            this.$message('你攻击了'+eneny.name+enenyLose+'点血,你损失了'+manLose+'点血')
+            this.$message('你攻击了'+attackObj.name+enenyLose+'点血,你损失了'+manLose+'点血')
+          // if(range.handRange(this.human.attr,3,x,y)&&eneny){
             
-          }
+            
+          // }
         }
-        if(eneny.blood<=0){
+        if(attackObj.blood<=0){
           let gain =[]
-          for(let i of eneny.fallItem){
+          for(let i of attackObj.fallItem){
             this.human.bag.push(i)
             gain.push(i.name)
           }
-          this.$message('你杀死了'+eneny.name+',并且获得了'+gain.join(','))
+          this.$message('你杀死了'+attackObj.name+',并且获得了'+gain.join(','))
           this.map[x][y] = null;
         }
-          console.log('after you atttack',eneny.blood)
+          console.log('after you atttack',attackObj.blood)
         }
         
         // if(this.human.itemFunc){
@@ -161,7 +202,7 @@
         }
       },
       huInitMap(){
-        var monsterNum = 20
+        var monsterNum = 50
         var monsterArr = hu.addMonster(monsterNum)
         for(var i=0;i<monsterNum;i++){
           var pos = this.pos(this.mapSize-1)
