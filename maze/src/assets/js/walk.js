@@ -5,8 +5,8 @@ var walk = {
             case 1:
             if(that.human.attr.pos[0] -1>=0){
                 let up = that.map[that.human.attr.pos[0]-1][that.human.attr.pos[1]]
-                if(!up||up.type==1){
-                    console.log(that.human.attr.pos[0] -1)
+                if(!up){
+                    console.log(up)
                         that.human.attr.pos[0] -=1;
                 }else{
                     that.$message('挡住勒。先把敌人清理了')
@@ -19,8 +19,8 @@ var walk = {
             case 2:
             if(that.human.attr.pos[0] <49){
                 let down = that.map[that.human.attr.pos[0]+1][that.human.attr.pos[1]]
-                if(!down||down.type==1){
-                    console.log(that.human.attr.pos[0] +1)
+                if(!down){
+                    console.log(down)
                     
                         that.human.attr.pos[0] +=1;
                     
@@ -35,8 +35,8 @@ var walk = {
             case 3:
             if(that.human.attr.pos[1] -1>=0){
                 let left = that.map[that.human.attr.pos[0]][that.human.attr.pos[1]-1]
-                if(!left||left.type==1){
-                    console.log(that.human.attr.pos[1])
+                if(!left){
+                    console.log(left)
                     
                         that.human.attr.pos[1] -=1;
                     
@@ -51,7 +51,7 @@ var walk = {
             case 4:
             if(that.human.attr.pos[1] <49){
                 let right = that.map[that.human.attr.pos[0]][that.human.attr.pos[1]+1]
-                if(!right||right.type==1){
+                if(!right){
                    
                         that.human.attr.pos[1] +=1;
                    

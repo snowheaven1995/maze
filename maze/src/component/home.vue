@@ -43,6 +43,8 @@
   import walk from '../assets/js/walk.js'
   import hu from '../assets/js/hu'
   import range from '../assets/js/range.js'
+  import map from '../assets/js/map.js'
+  import spring from '../assets/js/spring.js'
   export default{
     data(){
       return{
@@ -100,6 +102,11 @@
       // 点击怪物攻击
       comeHere(eneny,x,y){
         if(eneny){
+          // if(eneny.type == 1){
+          //   if(this.range(3,x,y)){
+              
+          //   }
+          // }
           if(this.human.itemFunc){
           // console.log('into throw')
           // (Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x
@@ -128,40 +135,35 @@
             attackObj.blood-=enenyLose;
             this.human.attr.blood -=manLose;
             this.$message('你攻击了'+attackObj.name+enenyLose+'点血,你损失了'+manLose+'点血')
-          // if(range.handRange(this.human.attr,3,x,y)&&eneny){
-            
-            
-          // }
+            if(attackObj.blood<=0){
+              let gain =[]
+              for(let i of attackObj.fallItem){
+                this.human.bag.push(i)
+                gain.push(i.name)
+              }
+              this.$message('你杀死了'+attackObj.name+',并且获得了'+gain.join(','))
+              this.map[x][y] = null;
+            }
         }
-        if(attackObj.blood<=0){
-          let gain =[]
-          for(let i of attackObj.fallItem){
-            this.human.bag.push(i)
-            gain.push(i.name)
-          }
-          this.$message('你杀死了'+attackObj.name+',并且获得了'+gain.join(','))
-          this.map[x][y] = null;
         }
-          // console.log('after you atttack',eneny.blood)
-        }
-        
-        // if(this.human.itemFunc){
-        //   this.human.itemFunc(this.human)
-        //   this.human.itemFunc = null
-        //   this.itemDel.del()
-        // }
+      
       },
       gowalk(){
         let that = this;
         walk.walkWay(that);
       },
       initMap(mapSize){
-        this.map = Array(mapSize).fill(null)
-        for(let i=0;i<mapSize;i++){
-          this.map[i] = Array(mapSize).fill(null)
-        }
+        this.map = map;
         this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
-        this.huInitMap()
+        this.huInitMap();
+        let springNum = 3;
+        for(let count=0;count<springNum;count++ ){
+          let pos = this.pos(this.mapSize-1)
+          let x = pos[0]
+          let y = pos[1]
+          this.map[x][y] = spring;
+          console.log('泉水----',this.map[x][y])
+        }
       },
       // 生成坐标
       pos(num){
@@ -174,7 +176,7 @@
         }
       },
       huInitMap(){
-        var monsterNum = 50
+        var monsterNum = 10
         var monsterArr = hu.addMonster(monsterNum)
         for(var i=0;i<monsterNum;i++){
           var pos = this.pos(this.mapSize-1)
