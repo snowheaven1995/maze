@@ -1,4 +1,5 @@
 var walk = {
+
     goDirection(that,where){
         that.$set(that.map[that.human.attr.pos[0]],that.human.attr.pos[1],null)
         switch(where){
@@ -71,12 +72,11 @@ var walk = {
     walkWay(that){
         document.onkeydown = function(ev){
             var ev = ev || window.event;
+            if(that.human.attr.name==that.currentName){
+                  return
+              }
             if(that.human.attr.action>0){
-                var data = {
-                    msg:'开始',
-                }
-                data = JSON.stringify(data)
-                that.$ws.send(data)
+
               switch(ev.keyCode){
               case 87:
                 walk.goDirection(that,1)
@@ -91,6 +91,13 @@ var walk = {
                 walk.goDirection(that,4)
                 break;
           }
+          var data = {
+                msg:'开始',
+                map:that.map,
+            }
+            data = JSON.stringify(data)
+            that.$ws.send(data)
+
             }else{
               that.$message('您的行动力花完勒')
             }       

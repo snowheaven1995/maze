@@ -2,7 +2,6 @@
   <div id="home">
     <div>let's  go some chicken dinner</div>
     <div class="gameArea" >
-      <el-button @click="ws">准备({{playerLength}}人准备)</el-button>
       <el-button @click="gameStart">开始游戏</el-button>
       <div class="cc">
         <div><el-button @click="bagVisible=true">背包</el-button></div>
@@ -14,6 +13,7 @@
           <span>防御:{{human.attr.defense}}</span><br>
           <span>行动力:{{human.attr.action}}</span>
         </div>
+        <div><el-button @click="end">回合结束</el-button></div>
       </div>
       <div class="clear"></div>
       <table cellspacing="0">
@@ -59,48 +59,56 @@
         human:{},
         attackHigh:12,
         attackLow:8,
+        currentName:'',
+
       }
     },
     computed:{
 
     },
-    watch: {
-      map:{
-        handler: function (val, old) { 
-          this.$ws.onmessage = (e) => {  
-            console.log(1111222221)
-
-
-          }   
-        },
-        deep:true
-      }
-    },
+    // watch: {
+    //   map:{
+    //     handler: function (val, old) { 
+          
+    //     },
+    //     deep:true
+    //   }
+    // },
 
     methods:{
 
       ws(){
-        var data = {
-          msg:'准备',
-          map:this.map
-        }
-        this.$ws.send(JSON.stringify(data)) 
+        // var data = {
+        //   msg:'准备',
+        //   map:this.map
+        // }
+        // this.$ws.send(JSON.stringify(data)) 
       },
 
       gameStart(){
           var data = {
             msg:'开始',
+            map:this.map
           }
           data = JSON.stringify(data)
           this.$ws.send(data)
           this.$ws.onmessage = (e) => {  // 收到服务器发送的消息后执行的回调
             var data = JSON.parse(e.data)
-            console.log(data.map)
-            this.map = data.map
-            this.playerLength = data.player
-            // console.log("gameStart ok")
+            if(data.type==1){
+              this.map = data.map
+            }
+            this.currentName = data.currentName
+            console.log(data.currentName)
           }
           
+      },
+      end(){
+        var data = {
+            msg:'回合结束',
+            currentName:this.human.attr.name,
+          }
+          data = JSON.stringify(data)
+        this.$ws.send(data)
       },
       reverseArray(ele){
         return ele
@@ -142,6 +150,9 @@
       },
       // 点击怪物攻击
       comeHere(eneny,x,y){
+        if(this.human.attr.name==this.currentName){
+          return
+        }
         if(eneny){
           // if(eneny.type == 1){
           //   if(this.range(3,x,y)){
@@ -195,7 +206,7 @@
 
       gowalk(){
         let that = this;
-        walk.walkWay(that);
+        walk.walkWay(this);
       },
       initMap(mapSize){
         this.$map = map

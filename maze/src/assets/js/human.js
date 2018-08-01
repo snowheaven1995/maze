@@ -1,3 +1,8 @@
+let random=(n)=>{
+    return parseInt(Math.random()*(n+1))
+}
+const x=random(49)
+const y=random(49)
 var humanBeing = {
     itemFunc:'',
     attr:{
@@ -7,7 +12,7 @@ var humanBeing = {
         maxBlood:100,
         blood:100,
         action:9999,
-        pos:[2,2],
+        pos:[x,y],
         view:4,
     },
     skill:{
