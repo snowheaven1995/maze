@@ -44,6 +44,10 @@
   import humanBeing from '../assets/js/human.js'
   import walk from '../assets/js/walk.js'
   import hu from '../assets/js/hu'
+  import range from '../assets/js/range.js'
+  import map from '../assets/js/map.js'
+  import spring from '../assets/js/spring.js'
+  var ws1 = new WebSocket('ws://192.168.1.245:8090/notify'); 
   export default{
     data(){
       return{
@@ -61,14 +65,20 @@
 
     },
     watch: {
-      '$ws.onmessage':{
+      map:{
         handler: function (val, old) { 
-          console.log('>>',val)
+          this.$ws.onmessage = (e) => {  
+            console.log(1111222221)
+
+
+          }   
         },
         deep:true
       }
     },
+
     methods:{
+
       ws(){
         var data = {
           msg:'准备',
@@ -78,20 +88,18 @@
       },
 
       gameStart(){
-          // var ws1 = this.ws1
-          // this.map = []
           var data = {
             msg:'开始',
           }
           data = JSON.stringify(data)
           this.$ws.send(data)
-          // ws1.onmessage = (e) => {  // 收到服务器发送的消息后执行的回调
-          //   var data = JSON.parse(e.data)
-          //   console.log(data.map)
-          //   this.map = data.map
-          //   this.playerLength = data.player
-          //   // console.log("gameStart ok")
-          // }
+          this.$ws.onmessage = (e) => {  // 收到服务器发送的消息后执行的回调
+            var data = JSON.parse(e.data)
+            console.log(data.map)
+            this.map = data.map
+            this.playerLength = data.player
+            // console.log("gameStart ok")
+          }
           
       },
       reverseArray(ele){
@@ -107,6 +115,12 @@
         }
         var a = '血量：'+ r.blood  + ',攻击：' + r.attack + ',防御：' + r.defense + b
         return a
+      },
+    
+      range(rangeVal,x,y){
+        if((Math.abs(x-this.human.attr.pos[0])<rangeVal)&&Math.abs(x-this.human.attr.pos[1])<rangeVal){
+          return true
+        }
       },
       canSee(x,y){
         if(Math.abs(x-this.human.attr.pos[0])<=this.human.attr.view){
@@ -129,6 +143,11 @@
       // 点击怪物攻击
       comeHere(eneny,x,y){
         if(eneny){
+          // if(eneny.type == 1){
+          //   if(this.range(3,x,y)){
+              
+          //   }
+          // }
           if(this.human.itemFunc){
           // console.log('into throw')
           // (Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x
@@ -138,21 +157,25 @@
             }
             this.human.itemFunc = ''
           }
+          // if((Math.abs(x-this.human.attr.pos[0])<=2&&this.human.attr.pos[1]==y)||Math.abs(y-this.human.attr.pos[1])<=2&&this.human.attr.pos[0]==x){
+            
+          // }
         }else{
           console.log('into hand',eneny)
-          let isNear =false;
-          if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
-            isNear = true
-          }
-          if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
-            isNear = true
-          }
-          if(isNear&&eneny){
-            console.log('now you atttack',eneny)
-            let enenyLose = this.human.attr.attack-eneny.defense>0?Math.floor((this.human.attr.attack-eneny.defense)*(hu.random1(8,12)*0.1)):1;
-            let manLose = eneny.attack - this.human.attr.defense>0?Math.floor((eneny.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
-            eneny.blood-=enenyLose;
+          // let isNear =false;
+          // if(Math.abs(x-this.human.attr.pos[0])<=1&&this.human.attr.pos[1]==y){
+          //   isNear = true
+          // }
+          // if(Math.abs(y-this.human.attr.pos[1])<=1&&this.human.attr.pos[0]==x){
+          //   isNear = true
+          // }
+          console.log('now you atttack',range.handRange(this.map,this.human.attr,4,x,y));
+            let attackObj = range.handRange(this.map,this.human.attr,4,x,y);
+            let enenyLose = this.human.attr.attack-attackObj.defense>0?Math.floor((this.human.attr.attack-attackObj.defense)*(hu.random1(8,12)*0.1)):1;
+            let manLose = attackObj.attack - this.human.attr.defense>0?Math.floor((attackObj.attack - this.human.attr.defense)*(hu.random1(5,8)*0.1)):1;
+            attackObj.blood-=enenyLose;
             this.human.attr.blood -=manLose;
+
             this.$message('你攻击了'+eneny.name+enenyLose+'点血,你损失了'+manLose+'点血')
             
           }
@@ -166,14 +189,8 @@
           this.$message('你杀死了'+eneny.name+',并且获得了'+gain.join(','))
           this.map[x][y] = '';
         }
-          // console.log('after you atttack',eneny.blood)
-        }
         
-        // if(this.human.itemFunc){
-        //   this.human.itemFunc(this.human)
-        //   this.human.itemFunc = null
-        //   this.itemDel.del()
-        // }
+      
       },
 
       gowalk(){
@@ -181,12 +198,18 @@
         walk.walkWay(that);
       },
       initMap(mapSize){
-        this.map = Array(mapSize).fill('')
-        for(let i=0;i<mapSize;i++){
-          this.map[i] = Array(mapSize).fill('')
-        }
+        this.$map = map
+        this.map = this.$map;
         this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
-        this.huInitMap()
+        this.huInitMap();
+        let springNum = 3;
+        for(let count=0;count<springNum;count++ ){
+          let pos = this.pos(this.mapSize-1)
+          let x = pos[0]
+          let y = pos[1]
+          this.map[x][y] = spring;
+          console.log('泉水----',this.map[x][y])
+        }
       },
       // 生成坐标
       pos(num){
@@ -199,7 +222,7 @@
         }
       },
       huInitMap(){
-        var monsterNum = 20
+        var monsterNum = 10
         var monsterArr = hu.addMonster(monsterNum)
         for(var i=0;i<monsterNum;i++){
           var pos = this.pos(this.mapSize-1)
