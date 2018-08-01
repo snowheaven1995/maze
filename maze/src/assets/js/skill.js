@@ -49,7 +49,7 @@ var skill = {
                         man.pos = [x-(humanBeing.skill.pullBook.lv+1),y]
                     }
                 }
-            	myMap[x][y] = null
+            	myMap[x][y] = ''
             	man.blood = parseInt(man.blood) - 2*humanBeing.skill.pullBook.lv
             	message('你使用湮灭之锁造成'+ 2*humanBeing.skill.pullBook.lv + '点伤害')
             }
@@ -80,7 +80,7 @@ var skill = {
                         man.pos = [x-(humanBeing.skill.pushBook.lv+1),y]
                     }
                 }
-                myMap[x][y] = null
+                myMap[x][y] = ''
                 man.blood = parseInt(man.blood) - 2*humanBeing.skill.pushBook.lv
                 message('你使用如来神掌造成'+ 2*humanBeing.skill.pushBook.lv + '点伤害')
             }

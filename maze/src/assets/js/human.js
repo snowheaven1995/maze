@@ -1,5 +1,5 @@
 var humanBeing = {
-    itemFunc:null,
+    itemFunc:'',
     attr:{
         name:'我',
         attack:20,

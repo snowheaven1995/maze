@@ -2,10 +2,12 @@
   <div id="home">
     <div>let's  go some chicken dinner</div>
     <div class="gameArea" >
+      <el-button @click="ws">准备({{playerLength}}人准备)</el-button>
+      <el-button @click="gameStart">开始游戏</el-button>
       <div class="cc">
         <div><el-button @click="bagVisible=true">背包</el-button></div>
         <div><el-button @click="skillShow=true">技能</el-button></div>  
-        <div v-if="human.itemFunc" class="c">请选择目标  <el-button @click="human.itemFunc=null">取消</el-button></div>
+        <div v-if="human.itemFunc" class="c">请选择目标  <el-button @click="human.itemFunc=''">取消</el-button></div>
         <div class="attrArea">
           <span>血量:{{human.attr.blood}}/{{human.attr.maxBlood}}</span><br>
           <span>攻击:{{human.attr.attack}}</span><br>
@@ -45,19 +47,53 @@
   export default{
     data(){
       return{
+        playerLength:0,
         skillShow:false,
         bagVisible:false,
         mapSize:50,
         map:[],
         human:{},
         attackHigh:12,
-        attackLow:8
+        attackLow:8,
       }
     },
-    watch:{
-      
+    computed:{
+
+    },
+    watch: {
+      '$ws.onmessage':{
+        handler: function (val, old) { 
+          console.log('>>',val)
+        },
+        deep:true
+      }
     },
     methods:{
+      ws(){
+        var data = {
+          msg:'准备',
+          map:this.map
+        }
+        this.$ws.send(JSON.stringify(data)) 
+      },
+
+      gameStart(){
+          // var ws1 = this.ws1
+          // this.map = []
+          var data = {
+            msg:'开始',
+          }
+          data = JSON.stringify(data)
+          this.$ws.send(data)
+          // ws1.onmessage = (e) => {  // 收到服务器发送的消息后执行的回调
+          //   var data = JSON.parse(e.data)
+          //   console.log(data.map)
+          //   this.map = data.map
+          //   this.playerLength = data.player
+          //   // console.log("gameStart ok")
+          // }
+          
+      },
       reverseArray(ele){
         return ele
       },
@@ -100,7 +136,7 @@
             if(this.human.itemFunc(eneny,this.$message,this.map)){//if里面直接会执行一遍函数
               this.itemDel.del()
             }
-            this.human.itemFunc = null
+            this.human.itemFunc = ''
           }
         }else{
           console.log('into hand',eneny)
@@ -128,7 +164,7 @@
             gain.push(i.name)
           }
           this.$message('你杀死了'+eneny.name+',并且获得了'+gain.join(','))
-          this.map[x][y] = null;
+          this.map[x][y] = '';
         }
           // console.log('after you atttack',eneny.blood)
         }
@@ -139,14 +175,15 @@
         //   this.itemDel.del()
         // }
       },
+
       gowalk(){
         let that = this;
         walk.walkWay(that);
       },
       initMap(mapSize){
-        this.map = Array(mapSize).fill(null)
+        this.map = Array(mapSize).fill('')
         for(let i=0;i<mapSize;i++){
-          this.map[i] = Array(mapSize).fill(null)
+          this.map[i] = Array(mapSize).fill('')
         }
         this.map[this.human.attr.pos[0]][this.human.attr.pos[1]] =this.human.attr
         this.huInitMap()
@@ -187,7 +224,7 @@
       if(type=='item'){
         this.itemDel.del = function(){
           this.human.bag.splice(index,1)
-          this.itemDel.del = null
+          this.itemDel.del = ''
         }.bind(this)
       }
       // 是否对自身使用
